@@ -2,11 +2,12 @@
 """
 Author: Mihai Criveti
 Description: Document Upload Module for Retrieverworks
-Provides endpoints for uploading documents.
+Provides endpoints for uploading and listing documents.
 """
 
 import logging
 import mimetypes
+import json
 from pathlib import Path
 from typing import Optional
 from uuid import uuid4
@@ -26,7 +27,7 @@ async def save_upload_document(
     description: Optional[str],
     public_dir: Path
 ) -> DocumentMetadata:
-    """Save uploaded document and create Document object with metadata"""
+    """Save uploaded document and create metadata"""
     try:
         # Generate UUID filename
         document_uuid = str(uuid4())
@@ -50,6 +51,11 @@ async def save_upload_document(
             path=f"/public/{stored_filename}",
             description=description
         )
+
+        # Save metadata as a JSON file next to the document
+        metadata_path = public_dir / f"{document_uuid}-metadata.json"
+        with open(metadata_path, 'w') as metadata_file:
+            json.dump(metadata.dict(), metadata_file, indent=2, default=str)
 
         return metadata
 
@@ -91,6 +97,33 @@ async def document_upload(
         log.error(f"Error in document_upload: {e}")
         if isinstance(e, HTTPException):
             raise
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )
+
+@router.get(
+    "/documents",
+    tags=["Document Management"],
+    summary="List uploaded documents",
+    description="List all uploaded documents and their metadata"
+)
+async def list_documents() -> list[DocumentMetadata]:
+    """List all uploaded documents and their metadata"""
+    try:
+        public_dir = Path("public")
+        public_dir.mkdir(exist_ok=True)
+
+        documents = []
+        for metadata_file in public_dir.glob("*-metadata.json"):
+            with open(metadata_file, 'r') as f:
+                metadata = json.load(f)
+                documents.append(metadata)
+
+        return documents
+
+    except Exception as e:
+        log.error(f"Error listing documents: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=str(e)

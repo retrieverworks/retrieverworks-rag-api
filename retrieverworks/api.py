@@ -22,6 +22,10 @@ log = logging.getLogger("retrieverworks.api")
 # Load environment variables from .env file
 load_dotenv()
 
+# Configure the server host and port
+SERVER_HOST = "0.0.0.0"
+SERVER_PORT = 8080
+
 # Configure storage paths
 STORAGE_DIR = Path("public")
 STORAGE_DIR.mkdir(parents=True, exist_ok=True)
@@ -42,7 +46,7 @@ app = FastAPI(
 # CORS middleware configuration
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Configure as needed for production
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -85,7 +89,6 @@ for route in app.routes:
 
 # Log startup information
 log.info(f"Storage directory: {STORAGE_DIR.absolute()}")
-log.info(f"Maximum upload size: {MAX_UPLOAD_SIZE / (1024 * 1024):.2f} MB")
 log.info("API documentation: http://localhost:8080/docs")
 
 if __name__ == "__main__":
@@ -93,9 +96,9 @@ if __name__ == "__main__":
 
     # Configure uvicorn server
     uvicorn.run(
-        "retrieverworks.api:app",  # Explicitly specify the app instance
-        host="0.0.0.0",
-        port=8080,
+        "retrieverworks.api:app",
+        host=SERVER_HOST,
+        port=SERVER_PORT,
         log_level="info",
         reload=True,  # Enable auto-reload during development
     )
