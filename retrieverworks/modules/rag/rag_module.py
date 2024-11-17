@@ -13,8 +13,8 @@ from typing import List, Optional, Literal
 from uuid import uuid4
 from abc import ABC, abstractmethod
 
-from fastapi import APIRouter, HTTPException, UploadFile, Form
-from pydantic import BaseModel, Field
+from fastapi import APIRouter, HTTPException, UploadFile
+from pydantic import BaseModel
 import chromadb
 from chromadb.config import Settings
 from PyPDF2 import PdfReader
